@@ -1,0 +1,9 @@
+activation: gelu
+dropout: 0.1769574139159608
+hidden_layers:
+- 512
+- 256
+- 128
+loss_fn: label_smoothing
+lr: 0.0005098266493777777
+optimizer: adam
