@@ -1,0 +1,9 @@
+dropout: 0.11978094533348621
+loss_fn: label_smoothing
+lr: 0.05306371575220848
+norm_layer: BatchNorm2d
+optimizer: sgd
+out_channels:
+- 32
+- 64
+- 128

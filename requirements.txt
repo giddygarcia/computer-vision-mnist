@@ -1,0 +1,10 @@
+torch==2.11.0
+pytorch-lightning==2.6.1
+lightning==2.6.1
+torchmetrics==1.9.0
+optuna==4.8.0
+scikit-learn==1.8.0
+pandas==3.0.2
+numpy==2.4.4
+matplotlib==3.10.9
+seaborn==0.13.2

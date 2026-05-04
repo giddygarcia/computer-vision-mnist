@@ -28,9 +28,10 @@ The MNIST data can be used to learn computer vision fundamentals and deep learni
 - matplotlib
 - seaborn
 - plotly
+*A `requirements.txt` file is also available in this repo.*
 
 ### Viewing / Installation:
-1. *Viewing Option:* Simply view the file `mnist-deep-learning.ipynb`
+1. *Viewing Option:* Simply view the file `mnist-digit-recognizer.ipynb`
 2. *Full Installation Option:* Download the repository `git clone `
 
 
