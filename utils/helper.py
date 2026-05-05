@@ -35,7 +35,7 @@ def run(
         model = CNNClassifier(**{k: v for k, v in config.items() if k != "batch_size"})
 
     callbacks = [
-        EarlyStopping(monitor="val_loss", patience=5, verbose=False, mode="min"),
+        EarlyStopping(monitor="val_acc", patience=5, verbose=False, mode="max"),
     ]
 
     if log:
@@ -44,8 +44,9 @@ def run(
                 monitor="val_acc",
                 mode="max",
                 dirpath=f"checkpoints/{name}",
-                filename="best-{epoch:02d}-{val_acc:.4f}",
+                filename=f"best-{name}",
                 save_top_k=1,
+                enable_version_counter=False,
             ),
             LearningRateMonitor(logging_interval="epoch"),
         ]

@@ -5,4 +5,4 @@ hidden_layers:
 loss_fn: cross_entropy
 lr: 0.001
 norm_layer: null
-optimizer: adam
+optimizer: adamw

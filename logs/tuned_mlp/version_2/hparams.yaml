@@ -7,4 +7,4 @@ hidden_layers:
 loss_fn: label_smoothing
 lr: 0.04486099966515511
 norm_layer: BatchNorm1d
-optimizer: sgd
+optimizer: adamw
