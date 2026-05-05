@@ -79,28 +79,41 @@ def objective(trial, splits, model_type="mlp"):
                     "[256, 128]",
                     "[512, 256, 128]",
                     "[1024, 512, 256]",
-                    "[512, 256, 128, 64]",
+                    "[512, 256, 64]",
                 ],
             )
         )
-        norm_layer = {"None": None, "BatchNorm1d": "BatchNorm1d"}[
-            trial.suggest_categorical("norm_layer", ["None", "BatchNorm1d"])
-        ]
+        activation = trial.suggest_categorical(
+            "activation", ["relu", "gelu", "silu", "tanh"]
+        )
+
+        norm_layer = trial.suggest_categorical("norm_layer", [None, "BatchNorm1d"])
+
+        optimizer = trial.suggest_categorical(
+            "optimizer", ["adam", "adamw", "sgd", "rmsprop"]
+        )
+
+        if optimizer == "sgd":
+            lr = trial.suggest_float("lr", 1e-3, 1e-1, log=True)
+        else:
+            lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
+
+        weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
+
         config = {
             "hidden_layers": hidden_layers,
-            "activation": trial.suggest_categorical(
-                "activation", ["relu", "gelu", "silu", "tanh"]
-            ),
-            "optimizer": trial.suggest_categorical(
-                "optimizer", ["adam", "adamw", "sgd", "rmsprop"]
-            ),
-            "lr": trial.suggest_float("lr", 1e-4, 1e-2, log=True),
-            "dropout": trial.suggest_float("dropout", 0.0, 0.5),
+            "activation": activation,
+            "optimizer": optimizer,
+            "lr": lr,
+            "weight_decay": weight_decay,
+            "dropout": trial.suggest_float("dropout", 0.0, 0.5, log=False),
             "loss_fn": trial.suggest_categorical(
                 "loss_fn", ["cross_entropy", "label_smoothing"]
             ),
             "norm_layer": norm_layer,
-            "batch_size": trial.suggest_categorical("batch_size", [64, 128, 256, 512]),
+            "batch_size": trial.suggest_categorical(
+                "batch_size", [32, 64, 128, 256, 512]
+            ),
         }
         trainer, _, _ = run(config, splits, epochs=10, model_type="mlp")
 
@@ -108,19 +121,40 @@ def objective(trial, splits, model_type="mlp"):
         out_channels = eval(
             trial.suggest_categorical(
                 "out_channels",
-                ["[32, 64]", "[64, 128]", "[32, 64, 128]", "[64, 128, 256]"],
+                [
+                    "[32, 64, 128]",
+                    "[32, 64, 256]",
+                    "[64, 128, 256]",
+                ],
             )
         )
+
+        pool_kernel = trial.suggest_categorical("pool_kernel", [2, 3])
+        pool_type = trial.suggest_categorical("pool_type", ["max", "avg"])
+
         norm_layer = {"None": None, "BatchNorm2d": nn.BatchNorm2d}[
             trial.suggest_categorical("norm_layer", ["None", "BatchNorm2d"])
         ]
+
+        optimizer = trial.suggest_categorical(
+            "optimizer", ["adam", "adamw", "sgd", "rmsprop"]
+        )
+
+        if optimizer == "sgd":
+            lr = trial.suggest_float("lr", 1e-2, 1e-1, log=True)
+        else:
+            lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
+
+        weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
+
         config = {
             "out_channels": out_channels,
-            "lr": trial.suggest_float("lr", 1e-4, 1e-1, log=True),
-            "dropout": trial.suggest_float("dropout", 0.0, 0.5),
-            "optimizer": trial.suggest_categorical(
-                "optimizer", ["adam", "adamw", "sgd", "rmsprop"]
-            ),
+            "pool_kernel": pool_kernel,
+            "pool_type": pool_type,
+            "lr": lr,
+            "weight_decay": weight_decay,
+            "dropout": trial.suggest_float("dropout", 0.0, 0.5, log=False),
+            "optimizer": optimizer,
             "loss_fn": trial.suggest_categorical(
                 "loss_fn", ["cross_entropy", "label_smoothing"]
             ),

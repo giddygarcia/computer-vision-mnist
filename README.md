@@ -15,11 +15,11 @@ The MNIST data can be used to learn computer vision fundamentals and deep learni
 * When going from classification with Logistic Regression to Deep Learning, neural networks display an advantageous gap in performance: from ~91% accuracy to ~97%.
 * Tuning hyperparamaters was always beneficial for the neural networks' accuracy.
 * All models' final validation scores are:
-    1. **Tuned CNN               -    0.9936**
-    2. CNN Baseline            -    0.9814
-    3. Tuned MLP               -    0.9771
-    4. Base MLP                -    0.9664
-    5. Log Regression          -    0.9137
+    1. **Tuned CNN - 0.9942**
+    2. CNN Baseline - 0.9850
+    3. Tuned MLP - 0.9805
+    4. Base MLP - 0.9663
+    5. Log Regression - 0.9137
 * 🏆️ The best model is a **tuned CNN model reaching ~99.4% accuracy** on the test set.
 
 ## 📦 Packages and Libraries Used:

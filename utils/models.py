@@ -61,6 +61,7 @@ class MLPClassifier(pl.LightningModule):
         lr=1e-3,
         loss_fn="cross_entropy",
         norm_layer=None,
+        weight_decay=0.0,
     ):
         super().__init__()
 
@@ -118,7 +119,10 @@ class MLPClassifier(pl.LightningModule):
         opts = {"adam": Adam, "adamw": AdamW, "sgd": SGD, "rmsprop": RMSprop}
         extra = {"momentum": 0.9} if self.hparams.optimizer == "sgd" else {}
         return opts[self.hparams.optimizer](
-            self.parameters(), lr=self.hparams.lr, **extra
+            self.parameters(),
+            lr=self.hparams.lr,
+            weight_decay=self.hparams.weight_decay,
+            **extra,
         )
 
 
@@ -131,6 +135,9 @@ class CNNClassifier(pl.LightningModule):
         optimizer="adam",
         loss_fn="cross_entropy",
         norm_layer=nn.BatchNorm2d,
+        pool_kernel=2,
+        pool_type="max",
+        weight_decay=0.0,
     ):
         super().__init__()
 
@@ -151,6 +158,9 @@ class CNNClassifier(pl.LightningModule):
 
         cnn_layers = []
         in_channels = 1
+
+        pool_cls = {"max": nn.MaxPool2d, "avg": nn.AvgPool2d}[self.hparams.pool_type]
+
         for out_channel in out_channels:
             cnn_layers.append(
                 nn.Conv2d(in_channels, out_channel, kernel_size=3, padding=1)
@@ -158,7 +168,9 @@ class CNNClassifier(pl.LightningModule):
             if norm_cls is not None:
                 cnn_layers.append(norm_cls(out_channel))
             cnn_layers.append(nn.ReLU())
-            cnn_layers.append(nn.MaxPool2d(kernel_size=2))
+            cnn_layers.append(
+                pool_cls(self.hparams.pool_kernel, stride=self.hparams.pool_kernel)
+            )
             in_channels = out_channel
         self.cnn_layers = nn.Sequential(*cnn_layers)
 
@@ -214,5 +226,8 @@ class CNNClassifier(pl.LightningModule):
         opts = {"adam": Adam, "adamw": AdamW, "sgd": SGD, "rmsprop": RMSprop}
         extra = {"momentum": 0.9} if self.hparams.optimizer == "sgd" else {}
         return opts[self.hparams.optimizer](
-            self.parameters(), lr=self.hparams.lr, **extra
+            self.parameters(),
+            lr=self.hparams.lr,
+            weight_decay=self.hparams.weight_decay,
+            **extra,
         )
