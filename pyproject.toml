@@ -1,0 +1,34 @@
+[project]
+name = "computer-vision-mnist"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Giddy Garcia", email = "giddygarcia@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "lightning>=2.6.5",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.2",
+    "optuna>=4.9.0",
+    "pandas>=3.0.5",
+    "scikit-learn>=1.9.0",
+    "seaborn>=0.13.2",
+    "torch>=2.13.0",
+    "torchmetrics>=1.9.0",
+    "torchvision>=0.28.0",
+]
+
+[project.scripts]
+computer-vision-mnist = "computer_vision_mnist:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "jupyter>=1.1.1",
+]

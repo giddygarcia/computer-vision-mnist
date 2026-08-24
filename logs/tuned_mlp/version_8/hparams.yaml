@@ -1,0 +1,11 @@
+activation: gelu
+dropout: 0.24019027316662447
+hidden_layers:
+- 1024
+- 512
+- 256
+loss_fn: label_smoothing
+lr: 0.00016686784775895715
+norm_layer: BatchNorm1d
+optimizer: adamw
+weight_decay: 7.687032421799726e-05

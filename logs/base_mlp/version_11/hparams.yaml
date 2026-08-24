@@ -1,0 +1,9 @@
+activation: relu
+dropout: 0.0
+hidden_layers:
+- 128
+loss_fn: cross_entropy
+lr: 0.001
+norm_layer: null
+optimizer: adamw
+weight_decay: 0.0
