@@ -11,6 +11,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from .models import DigitDataModule, MLPClassifier, CNNClassifier
+from pathlib import Path
+
 
 
 def run(
@@ -166,21 +168,40 @@ def objective(trial, splits, model_type="mlp"):
     return float(trainer.callback_metrics.get("val_acc", 0))
 
 
-def plot_csv_logger(csv_path, model_name):
+def plot_csv_logger(log_dir, model_name):
+    versions = [
+        folder for folder in Path(log_dir).glob("version_*")
+        if folder.is_dir()
+    ]
+
+    latest_version = max(
+        versions,
+        key=lambda folder: int(folder.name.split("_")[1])
+    )
+
+    csv_path = latest_version / "metrics.csv"
+
+    print(f"Using: {csv_path}")
+
     metrics = pd.read_csv(csv_path)
+
     aggreg_metrics = []
+
     for i, dfg in metrics.groupby("epoch"):
         agg = dict(dfg.mean())
         agg["epoch"] = i
         aggreg_metrics.append(agg)
 
     df = pd.DataFrame(aggreg_metrics)
+
     os.makedirs("images", exist_ok=True)
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
     for col in ["train_loss", "val_loss"]:
         if col in df:
             axes[0].plot(df["epoch"], df[col], label=col)
+
     axes[0].set_title("Loss")
     axes[0].legend()
     axes[0].grid(True)
@@ -188,6 +209,7 @@ def plot_csv_logger(csv_path, model_name):
     for col in ["train_acc", "val_acc"]:
         if col in df:
             axes[1].plot(df["epoch"], df[col], label=col)
+
     axes[1].set_title("Accuracy")
     axes[1].legend()
     axes[1].grid(True)

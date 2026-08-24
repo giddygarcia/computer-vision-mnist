@@ -34,6 +34,7 @@ class DigitDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
+            persistent_workers=self.num_workers > 0
         )
 
     def val_dataloader(self):
@@ -41,6 +42,7 @@ class DigitDataModule(pl.LightningDataModule):
             self._ds(self.X_val, self.y_val),
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            persistent_workers=self.num_workers > 0
         )
 
     def test_dataloader(self):
@@ -48,6 +50,7 @@ class DigitDataModule(pl.LightningDataModule):
             self._ds(self.X_test, self.y_test),
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            persistent_workers=self.num_workers > 0
         )
 
 
@@ -125,7 +128,6 @@ class MLPClassifier(pl.LightningModule):
             **extra,
         )
 
-
 class CNNClassifier(pl.LightningModule):
     def __init__(
         self,
@@ -146,9 +148,11 @@ class CNNClassifier(pl.LightningModule):
         )
         self.save_hyperparameters()
 
-        norm_cls = {"BatchNorm2d": nn.BatchNorm2d, "None": None, None: None}.get(
-            self.hparams.norm_layer
-        )
+        norm_cls = {
+            "BatchNorm2d": nn.BatchNorm2d,
+            "None": None,
+            None: None,
+        }.get(self.hparams.norm_layer)
 
         loss_fns = {
             "cross_entropy": nn.CrossEntropyLoss(),
@@ -159,36 +163,53 @@ class CNNClassifier(pl.LightningModule):
         cnn_layers = []
         in_channels = 1
 
-        pool_cls = {"max": nn.MaxPool2d, "avg": nn.AvgPool2d}[self.hparams.pool_type]
+        pool_cls = {
+            "max": nn.MaxPool2d,
+            "avg": nn.AvgPool2d,
+        }[self.hparams.pool_type]
 
         for out_channel in out_channels:
             cnn_layers.append(
-                nn.Conv2d(in_channels, out_channel, kernel_size=3, padding=1)
+                nn.Conv2d(
+                    in_channels,
+                    out_channel,
+                    kernel_size=3,
+                    padding=1,
+                )
             )
+
             if norm_cls is not None:
                 cnn_layers.append(norm_cls(out_channel))
+
             cnn_layers.append(nn.ReLU())
+
             cnn_layers.append(
-                pool_cls(self.hparams.pool_kernel, stride=self.hparams.pool_kernel)
+                pool_cls(
+                    self.hparams.pool_kernel,
+                    stride=self.hparams.pool_kernel,
+                )
             )
+
             in_channels = out_channel
+
         self.cnn_layers = nn.Sequential(*cnn_layers)
 
         dummy = torch.zeros(1, 1, 28, 28)
         flat_size = self.cnn_layers(dummy).view(1, -1).shape[1]
 
         fc_layers = [nn.Linear(flat_size, 128)]
+
         if norm_cls is not None:
             fc_layers.append(nn.BatchNorm1d(128))
+
         fc_layers.append(nn.ReLU())
+
         if dropout > 0:
             fc_layers.append(nn.Dropout(dropout))
-        fc_layers.append(nn.Linear(128, 10))
-        self.fc_layers = nn.Sequential(*fc_layers)
 
-        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=10)
-        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=10)
-        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=10)
+        fc_layers.append(nn.Linear(128, 10))
+
+        self.fc_layers = nn.Sequential(*fc_layers)
 
     def forward(self, x):
         x = x.view(-1, 1, 28, 28)
@@ -198,19 +219,28 @@ class CNNClassifier(pl.LightningModule):
 
     def _step(self, batch, stage):
         x, y = batch
+
         logits = self(x)
         loss = self.loss_fn(logits, y)
-        preds = logits.argmax(dim=1)
-        acc_metric = {
-            "train": self.train_acc,
-            "val": self.val_acc,
-            "test": self.test_acc,
-        }[stage]
-        acc_metric(preds, y)
-        self.log(f"{stage}_loss", loss, prog_bar=True, on_epoch=True, on_step=False)
+
+        acc = (logits.argmax(dim=1) == y).float().mean()
+
         self.log(
-            f"{stage}_acc", acc_metric, prog_bar=True, on_epoch=True, on_step=False
+            f"{stage}_loss",
+            loss,
+            prog_bar=True,
+            on_epoch=True,
+            on_step=False,
         )
+
+        self.log(
+            f"{stage}_acc",
+            acc,
+            prog_bar=True,
+            on_epoch=True,
+            on_step=False,
+        )
+
         return loss
 
     def training_step(self, batch, _):
@@ -223,8 +253,15 @@ class CNNClassifier(pl.LightningModule):
         return self._step(batch, "test")
 
     def configure_optimizers(self):
-        opts = {"adam": Adam, "adamw": AdamW, "sgd": SGD, "rmsprop": RMSprop}
+        opts = {
+            "adam": Adam,
+            "adamw": AdamW,
+            "sgd": SGD,
+            "rmsprop": RMSprop,
+        }
+
         extra = {"momentum": 0.9} if self.hparams.optimizer == "sgd" else {}
+
         return opts[self.hparams.optimizer](
             self.parameters(),
             lr=self.hparams.lr,
