@@ -2,11 +2,11 @@
 ## Deep Learning: Classifying with Neural Networks (MLPs and CNNs)
 
 ## Overview
-The MNIST data can be used to learn computer vision fundamentals and deep learning foundations. Such foundations will be presented by **exploring the performance of MLPs and CNNs on this famous dataset.** [Dataset from Kaggle](https://www.kaggle.com/competitions/digit-recognizer)
+The MNIST data can be used to learn computer vision fundamentals and deep learning foundations. Such foundations will be presented by building and training a MLP and CNN from scratch, and **exploring their performance on this famous dataset for multiclass classification.** [Dataset from Kaggle](https://www.kaggle.com/competitions/digit-recognizer)
 
 ## 🎯 Objectives
-* Create a deep MLP Model
-* Create a CNN Model
+* Build a deep MLP Model
+* Build a CNN Model
 * Optimize different hyperparamters for both types of models 
 * Pick the best model and observe its performance on the data.
 * Sample predictions: Present its capabilities on samples of the data
@@ -23,10 +23,8 @@ The MNIST data can be used to learn computer vision fundamentals and deep learni
 * 🏆️ The best model is a **tuned CNN model reaching ~99.4% accuracy** on the test set.
 
 ## 📦 Packages and Libraries Used:
-- torch
+- pytorch
 - pytorch-lightning
-- lightning
-- torchmetrics
 - optuna
 - scikit-learn
 - pandas
@@ -34,11 +32,18 @@ The MNIST data can be used to learn computer vision fundamentals and deep learni
 - matplotlib
 - seaborn
 
-*A `requirements.txt` file is also available in this repo.*
+*uv is integrated into this project for ease of package management*
 
 ### Viewing / Installation:
 1. *Viewing Option:* Simply view the notebook file `mnist-digit-recognizer.ipynb`
-2. *Full Installation Option:* Download the repository `git clone https://github.com/giddygarcia/computer-vision-mnist.git`
+2. *Full Installation Option:* 
+    1. Clone the repository and navigate to the directory 
+    ```
+    git clone https://github.com/giddygarcia/computer-vision-mnist.git
+    cd computer-vision-mnist
+    ``` 
+    2. Install the project dependencies: `uv sync`
+
 
 
 ## ✉️ Author and Contact Information

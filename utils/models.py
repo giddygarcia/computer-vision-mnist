@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-import torchmetrics
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim import Adam, AdamW, SGD, RMSprop
 
 
 class DigitDataModule(pl.LightningDataModule):
+    """Data module for loading MNIST training, validation, and test data."""
     def __init__(
         self,
         X_train,
@@ -18,6 +18,7 @@ class DigitDataModule(pl.LightningDataModule):
         batch_size=256,
         num_workers=15,
     ):
+        """"Initialize the data module with datasets and loading parameters."""
         super().__init__()
         self.X_train, self.y_train = X_train, y_train
         self.X_val, self.y_val = X_val, y_val
@@ -26,9 +27,11 @@ class DigitDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
 
     def _ds(self, X, y):
+        """Convert feature and label arrays into a PyTorch dataset."""
         return TensorDataset(torch.tensor(X), torch.tensor(y))
 
     def train_dataloader(self):
+        """Return a DataLoader for shuffled training batches."""
         return DataLoader(
             self._ds(self.X_train, self.y_train),
             batch_size=self.batch_size,
@@ -38,6 +41,7 @@ class DigitDataModule(pl.LightningDataModule):
         )
 
     def val_dataloader(self):
+        """Return a DataLoader for validation batches."""
         return DataLoader(
             self._ds(self.X_val, self.y_val),
             batch_size=self.batch_size,
@@ -46,6 +50,7 @@ class DigitDataModule(pl.LightningDataModule):
         )
 
     def test_dataloader(self):
+        """Return a DataLoader for test batches."""
         return DataLoader(
             self._ds(self.X_test, self.y_test),
             batch_size=self.batch_size,
@@ -55,6 +60,8 @@ class DigitDataModule(pl.LightningDataModule):
 
 
 class MLPClassifier(pl.LightningModule):
+    """Feedforward multilayer perceptron for MNIST digit classification."""
+
     def __init__(
         self,
         hidden_layers=[512, 256, 128],
@@ -66,6 +73,7 @@ class MLPClassifier(pl.LightningModule):
         norm_layer=None,
         weight_decay=0.0,
     ):
+        """Initialize the MLP architecture and training configuration."""
         super().__init__()
 
         norm_layer = {nn.BatchNorm1d: "BatchNorm1d", None: None}.get(
@@ -98,9 +106,11 @@ class MLPClassifier(pl.LightningModule):
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
+        """Perform a forward pass through the MLP."""
         return self.net(x)
 
     def _step(self, batch, stage):
+        """Calculate loss and accuracy for a training, validation, or test batch."""
         x, y = batch
         logits = self(x)
         loss = self.loss_fn(logits, y)
@@ -110,6 +120,7 @@ class MLPClassifier(pl.LightningModule):
         return loss
 
     def training_step(self, batch, _):
+        """Run one training step and return the batch loss."""
         return self._step(batch, "train")
 
     def validation_step(self, batch, _):
@@ -119,6 +130,7 @@ class MLPClassifier(pl.LightningModule):
         return self._step(batch, "test")
 
     def configure_optimizers(self):
+        """Configure the selected optimizer and its training parameters."""
         opts = {"adam": Adam, "adamw": AdamW, "sgd": SGD, "rmsprop": RMSprop}
         extra = {"momentum": 0.9} if self.hparams.optimizer == "sgd" else {}
         return opts[self.hparams.optimizer](
@@ -129,6 +141,7 @@ class MLPClassifier(pl.LightningModule):
         )
 
 class CNNClassifier(pl.LightningModule):
+    """Convolutional neural network for MNIST digit classification."""
     def __init__(
         self,
         out_channels=[32, 64],
@@ -141,6 +154,7 @@ class CNNClassifier(pl.LightningModule):
         pool_type="max",
         weight_decay=0.0,
     ):
+        """Initialize the CNN architecture and training configuration."""
         super().__init__()
 
         norm_layer = {nn.BatchNorm2d: "BatchNorm2d", None: None}.get(
@@ -194,6 +208,7 @@ class CNNClassifier(pl.LightningModule):
 
         self.cnn_layers = nn.Sequential(*cnn_layers)
 
+        # Create a dummy-sized image to manually calculate the size before creating Linear 
         dummy = torch.zeros(1, 1, 28, 28)
         flat_size = self.cnn_layers(dummy).view(1, -1).shape[1]
 
@@ -212,12 +227,15 @@ class CNNClassifier(pl.LightningModule):
         self.fc_layers = nn.Sequential(*fc_layers)
 
     def forward(self, x):
+        """Perform a forward pass through the convolutional and fully connected layers."""
         x = x.view(-1, 1, 28, 28)
         x = self.cnn_layers(x)
+        # convert the feature maps into a flat vector
         x = torch.flatten(x, start_dim=1)
         return self.fc_layers(x)
 
     def _step(self, batch, stage):
+        """Calculate loss and accuracy for a training, validation, or test batch."""
         x, y = batch
 
         logits = self(x)
